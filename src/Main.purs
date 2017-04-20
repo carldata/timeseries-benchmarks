@@ -4,15 +4,19 @@ import Prelude
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import Data.Array as A
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, fromJust)
 import Data.Tuple (Tuple(..))
 import Node.FS.Sync (readTextFile)
 import Node.FS (FS)
 import Node.Encoding (Encoding(..))
 import Control.Monad.Eff.Exception (EXCEPTION)
+import Partial.Unsafe (unsafePartial)
 
 import Data.TimeSeries as TS
 import Data.TimeSeries.IO as IO
+import Learn.Unsupervised.OutlierClassifier as OC
+import LinearAlgebra.Matrix as M
+import Statistics.Sample as S
 
 
 main :: ∀ eff. Eff (console :: CONSOLE, exception :: EXCEPTION, fs :: FS | eff) Unit
@@ -28,7 +32,19 @@ testFile fileName = do
   log $ "\n# Benchmark: " <> fileName
   Tuple s1 s2 <- loadSeries fileName
   log $ "Dataset length: " <> show (TS.length s1)
-  log $ "#Anomalies: " <> "not implemented yet"
+  let s3 = A.zipWith (==) s1.values s2.values             
+  log $ "#Anomalies: " <> show (A.length (A.filter ((==) false) $ s3))
+
+  log "Calculate mean and variance"
+  let mu = S.mean s1.values
+  let std = S.stddev s1.values
+  log $ "Mean: " <> show mu <> ", stddev: " <> show std
+  log "Train model..."
+  let td = unsafePartial $ fromJust $ M.fromArray (TS.length s1) 1 s1.values
+  let model = OC.learn td
+  log "Make predictions..."
+  let predictions = OC.predict model td
+  log $ "#Predictions: " <> show (A.length (A.filter (\p -> p < 0.01) predictions))
 
 
 -- Load raw and corrected Time Series from CSV file
