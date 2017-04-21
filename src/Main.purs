@@ -14,9 +14,9 @@ import Partial.Unsafe (unsafePartial)
 
 import Data.TimeSeries as TS
 import Data.TimeSeries.IO as IO
-import Learn.Unsupervised.OutlierClassifier as OC
+import Learn.Unsupervised.OutlierDetection as OC
+import Learn.Metrics.ConfusionMatrix as CM
 import LinearAlgebra.Matrix as M
-import Statistics.Sample as S
 
 
 main :: ∀ eff. Eff (console :: CONSOLE, exception :: EXCEPTION, fs :: FS | eff) Unit
@@ -32,19 +32,19 @@ testFile fileName = do
   log $ "\n# Benchmark: " <> fileName
   Tuple s1 s2 <- loadSeries fileName
   log $ "Dataset length: " <> show (TS.length s1)
-  let s3 = A.zipWith (==) s1.values s2.values             
-  log $ "#Anomalies: " <> show (A.length (A.filter ((==) false) $ s3))
-
-  log "Calculate mean and variance"
-  let mu = S.mean s1.values
-  let std = S.stddev s1.values
-  log $ "Mean: " <> show mu <> ", stddev: " <> show std
+  let s3 = A.zipWith (/=) s1.values s2.values             
+  log $ "Anomalies in test set: " <> show (A.length (A.filter ((==) true) $ s3))
   log "Train model..."
   let td = unsafePartial $ fromJust $ M.fromArray (TS.length s1) 1 s1.values
-  let model = OC.learn td
+  let model = OC.train td
   log "Make predictions..."
   let predictions = OC.predict model td
-  log $ "#Predictions: " <> show (A.length (A.filter (\p -> p < 0.01) predictions))
+  -- Mark anomalies
+  let s4 = map (\p -> p < 0.01) predictions
+  log $ "#Predicted anomalies: " <> show (A.length (A.filter id s4))
+  let cm = CM.calculate s3 s4
+  log "Confusion matrix"
+  log $ CM.toString cm
 
 
 -- Load raw and corrected Time Series from CSV file

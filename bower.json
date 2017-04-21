@@ -9,7 +9,7 @@
   "dependencies": {
     "purescript-arrays": "^4.0.1",
     "purescript-datetime": "^3.0.0",
-    "purescript-learn": "^0.1.0",
+    "purescript-learn": "^0.2.0",
     "purescript-linear-algebra": "^0.1.1",
     "purescript-lists": "^4.0.1",
     "purescript-math": "^2.0.0",
