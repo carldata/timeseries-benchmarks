@@ -8,7 +8,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Data.Maybe (fromMaybe, fromJust)
-import Data.Tuple (Tuple(..), fst, snd)
+import Data.Tuple (Tuple(..))
 import Node.Encoding (Encoding(..))
 import Node.FS (FS)
 import Node.FS.Sync (readTextFile)
@@ -67,8 +67,3 @@ indexReport xs = do
   let idx1 = xs.index
   let idx2 = A.zipWith (\x1 x2 -> x2-x1) idx1 (fromMaybe [] (A.tail idx1))
   log $ "Index histogram " <> show (S.histogram idx2)
-
-  -- let idx3 = A.zip idx1 (fromMaybe [] (A.tail idx1))
-  -- let idx4 = A.filter (\tu -> (fst tu) > (snd tu)) idx3
-  -- log $ show idx4
-
