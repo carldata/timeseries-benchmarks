@@ -9,16 +9,17 @@
   "dependencies": {
     "purescript-arrays": "^4.0.1",
     "purescript-datetime": "^3.0.0",
-    "purescript-learn": "^0.2.0",
-    "purescript-linear-algebra": "^0.1.1",
     "purescript-lists": "^4.0.1",
     "purescript-math": "^2.0.0",
     "purescript-maybe": "^3.0.0",
     "purescript-node-fs-aff": "^4.0.0",
-    "purescript-timeseries": "^0.3.0",
     "purescript-prelude": "^3.0.0",
-    "purescript-stats": "^0.1.0",
-    "purescript-tuples": "^4.0.0"
+    "purescript-tuples": "^4.0.0",
+
+    "purescript-learn": "^0.2.0",
+    "purescript-linear-algebra": "^0.1.1",
+    "purescript-stats": "^0.2.0",
+    "purescript-timeseries": "^0.4.0"
   },
   "devDependencies": {
     "purescript-console": "^3.0.0",
