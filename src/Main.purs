@@ -2,21 +2,19 @@ module Main where
 
 import Prelude
 import Data.Array as A
-import Learn.Metrics.ConfusionMatrix as CM
-import Learn.Unsupervised.OutlierDetection as OC
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import Control.Monad.Eff.Exception (EXCEPTION)
-import Data.Maybe (fromMaybe, fromJust)
+import Data.Maybe (fromMaybe)
 import Data.Tuple (Tuple(..))
 import Node.Encoding (Encoding(..))
 import Node.FS (FS)
 import Node.FS.Sync (readTextFile)
-import Partial.Unsafe (unsafePartial)
 
-import LinearAlgebra.Matrix as M
+import Learn.Metrics.ConfusionMatrix as CM
 import Statistics.Sample as S
 import Data.TimeSeries as TS
+import Data.TimeSeries.Anomaly as TA
 import Data.TimeSeries.IO as IO
 
 
@@ -39,12 +37,10 @@ anomalyReport fileName = do
   indexReport s1
   log $ "Anomalies in test set: " <> show (A.length (A.filter ((==) true) $ s3))
   log "Train model..."
-  let td = unsafePartial $ fromJust $ M.fromArray (TS.length s1) 1 (TS.values s1)
-  let model = OC.train td
+  let model = TA.train s1
   log "Make predictions..."
-  let predictions = OC.predict model td
-  -- Mark anomalies
-  let s4 = map (\p -> p < 0.01) predictions
+  let predictions = TA.removeOutliers model s1 
+  let s4 = A.zipWith (/=) (TS.values s1) (TS.values predictions)
   log $ "#Predicted anomalies: " <> show (A.length (A.filter id s4))
   let cm = CM.calculate s3 s4
   log "Confusion matrix"
@@ -67,3 +63,5 @@ indexReport xs = do
   let idx1 = TS.index xs
   let idx2 = A.zipWith (\x1 x2 -> x2-x1) idx1 (fromMaybe [] (A.tail idx1))
   log $ "Index histogram " <> show (S.histogram idx2)
+
+
