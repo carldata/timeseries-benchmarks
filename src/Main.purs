@@ -35,11 +35,11 @@ anomalyReport :: ∀ eff. String -> Eff (console :: CONSOLE, exception :: EXCEPT
 anomalyReport fileName = do
   log $ "\n# Benchmark: " <> fileName
   Tuple s1 s2 <- loadSeries fileName
-  let s3 = A.zipWith (/=) s1.values s2.values             
+  let s3 = A.zipWith (/=) (TS.values s1) (TS.values s2)
   indexReport s1
   log $ "Anomalies in test set: " <> show (A.length (A.filter ((==) true) $ s3))
   log "Train model..."
-  let td = unsafePartial $ fromJust $ M.fromArray (TS.length s1) 1 s1.values
+  let td = unsafePartial $ fromJust $ M.fromArray (TS.length s1) 1 (TS.values s1)
   let model = OC.train td
   log "Make predictions..."
   let predictions = OC.predict model td
@@ -64,6 +64,6 @@ loadSeries fileName = do
 indexReport :: ∀ eff. NSeries -> Eff (console :: CONSOLE, exception :: EXCEPTION, fs :: FS | eff) Unit
 indexReport xs = do 
   log $ "Dataset length: " <> show (TS.length xs)
-  let idx1 = xs.index
+  let idx1 = TS.index xs
   let idx2 = A.zipWith (\x1 x2 -> x2-x1) idx1 (fromMaybe [] (A.tail idx1))
   log $ "Index histogram " <> show (S.histogram idx2)
